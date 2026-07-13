@@ -1,0 +1,747 @@
+{
+  "name": "AI Sales Agent & Lead Qualification System",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-sales-agent",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        0
+      ],
+      "id": "d6290c6a-3fb2-499d-bc7d-e6287a9ee512",
+      "name": "Webhook",
+      "webhookId": "f33946b8-bf66-42db-8c1c-eee982922944"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert AI Sales Agent and Lead Qualification Specialist.\n\nAnalyze the following lead information:\n\nCustomer Name: {{ $json.customer_name }}\nEmail: {{ $json.email }}\nPhone: {{ $json.phone }}\nCompany: {{ $json.company }}\nIndustry: {{ $json.industry }}\nService Required: {{ $json.service_required }}\nBusiness Size: {{ $json.business_size }}\nMonthly Leads: {{ $json.monthly_leads }}\nBudget: {{ $json.budget }}\nPain Point: {{ $json.pain_point }}\n\nTasks:\n\n1. Understand the customer's business requirements.\n2. Score the lead from 0 to 100.\n3. Classify the lead as one of:\n   - Hot Lead\n   - Warm Lead\n   - Cold Lead\n4. Set the priority as one of:\n   - High\n   - Medium\n   - Low\n5. Write a short professional summary.\n6. Recommend the best next sales action.\n\nReturn ONLY valid JSON in this exact format:\n\n{\n  \"customer_name\": \"{{ $json.customer_name }}\",\n  \"email\": \"{{ $json.email }}\",\n  \"phone\": \"{{ $json.phone }}\",\n  \"company\": \"{{ $json.company }}\",\n  \"industry\": \"{{ $json.industry }}\",\n  \"service_required\": \"{{ $json.service_required }}\",\n  \"business_size\": \"{{ $json.business_size }}\",\n  \"monthly_leads\": \"{{ $json.monthly_leads }}\",\n  \"budget\": \"{{ $json.budget }}\",\n  \"pain_point\": \"{{ $json.pain_point }}\",\n  \"lead_score\": \"80\",\n  \"lead_status\": \"Hot Lead\",\n  \"priority\": \"High\",\n  \"summary\": \"Write a professional summary based on the lead information.\",\n  \"recommended_action\": \"Write the recommended next sales action.\"\n}\n\nIMPORTANT RULES:\n\n- lead_score MUST be a string containing a whole number from 0 to 100.\n- Put lead_score inside quotation marks, for example: \"80\".\n- lead_status must be exactly: Hot Lead, Warm Lead, or Cold Lead.\n- priority must be exactly: High, Medium, or Low.\n- Return only the JSON object.\n- Do not return markdown.\n- Do not use code fences.\n- Do not add explanations before or after the JSON.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "6ef1a614-24e1-41ca-b4e4-c5045b6f1371",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"customer_name\": \"Afaq Khan\",\n  \"email\": \"afaq@example.com\",\n  \"phone\": \"+92XXXXXXXXXX\",\n  \"company\": \"ABC Real Estate\",\n  \"industry\": \"Real Estate\",\n  \"service_required\": \"WhatsApp AI Sales Agent\",\n  \"business_size\": \"25 Employees\",\n  \"monthly_leads\": \"300\",\n  \"budget\": \"$300/month\",\n  \"pain_point\": \"Too many leads, slow response time\",\n  \"lead_score\": \"95\",\n  \"lead_status\": \"Hot Lead\",\n  \"priority\": \"High\",\n  \"summary\": \"Customer wants to automate lead qualification.\",\n  \"recommended_action\": \"Book a demo within 24 hours.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        656,
+        192
+      ],
+      "id": "06f54ac1-a578-460b-8cca-ab4825c38485",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        272,
+        192
+      ],
+      "id": "e46a93c6-bbb7-4dc9-9dd2-3bfb0abe2cd6",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "Ci5wvcwcHvHqQ0Kz",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst data = $input.first().json.body;\n\nreturn [\n  {\n    json: {\n      customer_name: data.full_name,\n      email: data.email,\n      phone: data.phone,\n      company: data.company,\n      industry: data.industry,\n      service_required: data.service_required,\n      business_size: data.business_size,\n      monthly_leads: data.monthly_leads,\n      budget: data.budget,\n      pain_point: data.pain_point\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "16293b72-46f5-46d5-8e82-e576088d4bf1",
+      "name": "Prepare Lead Data"
+    },
+    {
+      "parameters": {
+        "path": "ai-sales-form",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        400
+      ],
+      "id": "be86cb5e-aec0-4436-8c62-54df8d2417fa",
+      "name": "Webhook1",
+      "webhookId": "75398855-c8aa-467a-b8fb-476ca4e9d39f"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = `\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\n  <title>AI Sales Agent | Lead Qualification</title>\n\n  <style>\n    * {\n      box-sizing: border-box;\n      margin: 0;\n      padding: 0;\n    }\n\n    :root {\n      --background: #070b16;\n      --card: rgba(18, 25, 43, 0.78);\n      --card-border: rgba(148, 163, 184, 0.16);\n      --input: rgba(15, 23, 42, 0.82);\n      --text: #f8fafc;\n      --muted: #94a3b8;\n      --primary: #8b5cf6;\n      --secondary: #3b82f6;\n      --success: #22c55e;\n      --error: #ef4444;\n    }\n\n    html {\n      scroll-behavior: smooth;\n    }\n\n    body {\n      min-height: 100vh;\n      overflow-x: hidden;\n      font-family: Inter, Arial, sans-serif;\n      color: var(--text);\n      background:\n        radial-gradient(circle at 15% 15%, rgba(124, 58, 237, 0.18), transparent 32%),\n        radial-gradient(circle at 85% 20%, rgba(59, 130, 246, 0.16), transparent 30%),\n        radial-gradient(circle at 50% 90%, rgba(14, 165, 233, 0.1), transparent 35%),\n        var(--background);\n    }\n\n    .background-grid {\n      position: fixed;\n      inset: 0;\n      pointer-events: none;\n      opacity: 0.24;\n      background-image:\n        linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),\n        linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);\n      background-size: 42px 42px;\n      mask-image: linear-gradient(to bottom, black, transparent);\n    }\n\n    .orb {\n      position: fixed;\n      border-radius: 50%;\n      filter: blur(80px);\n      pointer-events: none;\n      animation: float 9s ease-in-out infinite;\n    }\n\n    .orb-one {\n      width: 260px;\n      height: 260px;\n      top: 5%;\n      left: -80px;\n      background: rgba(124, 58, 237, 0.23);\n    }\n\n    .orb-two {\n      width: 320px;\n      height: 320px;\n      right: -120px;\n      top: 35%;\n      background: rgba(37, 99, 235, 0.18);\n      animation-delay: -4s;\n    }\n\n    @keyframes float {\n      0%, 100% {\n        transform: translateY(0) scale(1);\n      }\n\n      50% {\n        transform: translateY(-30px) scale(1.08);\n      }\n    }\n\n    .page {\n      position: relative;\n      z-index: 1;\n      width: min(1180px, calc(100% - 32px));\n      margin: 0 auto;\n      padding: 58px 0 70px;\n    }\n\n    .hero {\n      max-width: 850px;\n      margin: 0 auto 42px;\n      text-align: center;\n      animation: fade-down 0.8s ease both;\n    }\n\n    @keyframes fade-down {\n      from {\n        opacity: 0;\n        transform: translateY(-22px);\n      }\n\n      to {\n        opacity: 1;\n        transform: translateY(0);\n      }\n    }\n\n    .badge {\n      display: inline-flex;\n      align-items: center;\n      gap: 9px;\n      margin-bottom: 22px;\n      padding: 9px 15px;\n      border: 1px solid rgba(139, 92, 246, 0.3);\n      border-radius: 999px;\n      color: #c4b5fd;\n      background: rgba(124, 58, 237, 0.09);\n      font-size: 13px;\n      font-weight: 700;\n      letter-spacing: 0.03em;\n    }\n\n    .badge-dot {\n      width: 8px;\n      height: 8px;\n      border-radius: 50%;\n      background: var(--success);\n      box-shadow: 0 0 14px rgba(34, 197, 94, 0.9);\n    }\n\n    h1 {\n      margin-bottom: 18px;\n      font-size: clamp(38px, 6vw, 70px);\n      line-height: 1.03;\n      letter-spacing: -0.045em;\n    }\n\n    .gradient-text {\n      color: transparent;\n      background: linear-gradient(90deg, #a78bfa, #60a5fa, #38bdf8);\n      background-clip: text;\n      -webkit-background-clip: text;\n    }\n\n    .hero-description {\n      max-width: 710px;\n      margin: 0 auto;\n      color: var(--muted);\n      font-size: 17px;\n      line-height: 1.75;\n    }\n\n    .layout {\n      display: grid;\n      grid-template-columns: 0.82fr 1.25fr;\n      gap: 24px;\n      align-items: start;\n    }\n\n    .glass {\n      border: 1px solid var(--card-border);\n      border-radius: 24px;\n      background: var(--card);\n      box-shadow:\n        0 26px 70px rgba(0, 0, 0, 0.35),\n        inset 0 1px 0 rgba(255, 255, 255, 0.04);\n      backdrop-filter: blur(22px);\n      -webkit-backdrop-filter: blur(22px);\n    }\n\n    .info-panel {\n      position: sticky;\n      top: 28px;\n      padding: 30px;\n      animation: slide-left 0.85s ease both;\n    }\n\n    .form-panel {\n      padding: 32px;\n      animation: slide-right 0.85s ease both;\n    }\n\n    @keyframes slide-left {\n      from {\n        opacity: 0;\n        transform: translateX(-30px);\n      }\n\n      to {\n        opacity: 1;\n        transform: translateX(0);\n      }\n    }\n\n    @keyframes slide-right {\n      from {\n        opacity: 0;\n        transform: translateX(30px);\n      }\n\n      to {\n        opacity: 1;\n        transform: translateX(0);\n      }\n    }\n\n    .panel-icon {\n      display: grid;\n      width: 54px;\n      height: 54px;\n      margin-bottom: 22px;\n      place-items: center;\n      border: 1px solid rgba(139, 92, 246, 0.28);\n      border-radius: 16px;\n      background: linear-gradient(\n        135deg,\n        rgba(124, 58, 237, 0.25),\n        rgba(59, 130, 246, 0.16)\n      );\n      font-size: 25px;\n    }\n\n    .panel-title {\n      margin-bottom: 12px;\n      font-size: 25px;\n    }\n\n    .panel-copy {\n      margin-bottom: 27px;\n      color: var(--muted);\n      font-size: 15px;\n      line-height: 1.7;\n    }\n\n    .feature-list {\n      display: grid;\n      gap: 14px;\n    }\n\n    .feature {\n      display: flex;\n      gap: 12px;\n      align-items: flex-start;\n      padding: 14px;\n      border: 1px solid rgba(148, 163, 184, 0.1);\n      border-radius: 15px;\n      background: rgba(15, 23, 42, 0.48);\n      transition: 0.25s ease;\n    }\n\n    .feature:hover {\n      transform: translateX(5px);\n      border-color: rgba(139, 92, 246, 0.3);\n    }\n\n    .feature-check {\n      display: grid;\n      flex: 0 0 27px;\n      width: 27px;\n      height: 27px;\n      place-items: center;\n      border-radius: 50%;\n      color: #bbf7d0;\n      background: rgba(34, 197, 94, 0.13);\n      font-size: 13px;\n    }\n\n    .feature strong {\n      display: block;\n      margin-bottom: 4px;\n      font-size: 14px;\n    }\n\n    .feature span {\n      color: var(--muted);\n      font-size: 12px;\n      line-height: 1.5;\n    }\n\n    .trust {\n      display: flex;\n      gap: 8px;\n      align-items: center;\n      margin-top: 26px;\n      padding-top: 21px;\n      border-top: 1px solid rgba(148, 163, 184, 0.1);\n      color: var(--muted);\n      font-size: 12px;\n    }\n\n    .form-header {\n      margin-bottom: 26px;\n    }\n\n    .form-header h2 {\n      margin-bottom: 8px;\n      font-size: 27px;\n    }\n\n    .form-header p {\n      color: var(--muted);\n      font-size: 14px;\n      line-height: 1.6;\n    }\n\n    .form-grid {\n      display: grid;\n      grid-template-columns: repeat(2, minmax(0, 1fr));\n      gap: 18px;\n    }\n\n    .field {\n      position: relative;\n    }\n\n    .field.full {\n      grid-column: 1 / -1;\n    }\n\n    label {\n      display: block;\n      margin-bottom: 8px;\n      color: #cbd5e1;\n      font-size: 13px;\n      font-weight: 700;\n    }\n\n    .required {\n      color: #a78bfa;\n    }\n\n    input,\n    select,\n    textarea {\n      width: 100%;\n      border: 1px solid rgba(148, 163, 184, 0.18);\n      outline: none;\n      border-radius: 13px;\n      color: var(--text);\n      background: var(--input);\n      font: inherit;\n      transition:\n        border-color 0.22s ease,\n        box-shadow 0.22s ease,\n        transform 0.22s ease;\n    }\n\n    input,\n    select {\n      min-height: 50px;\n      padding: 0 14px;\n    }\n\n    textarea {\n      min-height: 125px;\n      padding: 14px;\n      resize: vertical;\n      line-height: 1.6;\n    }\n\n    input::placeholder,\n    textarea::placeholder {\n      color: #64748b;\n    }\n\n    select option {\n      color: white;\n      background: #111827;\n    }\n\n    input:focus,\n    select:focus,\n    textarea:focus {\n      transform: translateY(-1px);\n      border-color: rgba(139, 92, 246, 0.78);\n      box-shadow:\n        0 0 0 4px rgba(139, 92, 246, 0.11),\n        0 8px 24px rgba(0, 0, 0, 0.18);\n    }\n\n    .submit-wrap {\n      margin-top: 24px;\n    }\n\n    .submit-button {\n      position: relative;\n      display: flex;\n      width: 100%;\n      min-height: 54px;\n      overflow: hidden;\n      align-items: center;\n      justify-content: center;\n      gap: 10px;\n      border: 0;\n      border-radius: 14px;\n      color: white;\n      background: linear-gradient(90deg, #7c3aed, #2563eb, #0284c7);\n      background-size: 200% auto;\n      box-shadow: 0 15px 35px rgba(79, 70, 229, 0.3);\n      cursor: pointer;\n      font-size: 15px;\n      font-weight: 800;\n      transition:\n        transform 0.25s ease,\n        box-shadow 0.25s ease;\n      animation: gradient-shift 5s linear infinite;\n    }\n\n    @keyframes gradient-shift {\n      to {\n        background-position: 200% center;\n      }\n    }\n\n    .submit-button:hover {\n      transform: translateY(-2px);\n      box-shadow: 0 19px 40px rgba(79, 70, 229, 0.4);\n    }\n\n    .submit-button:disabled {\n      cursor: not-allowed;\n      opacity: 0.7;\n      transform: none;\n    }\n\n    .spinner {\n      display: none;\n      width: 19px;\n      height: 19px;\n      border: 2px solid rgba(255, 255, 255, 0.35);\n      border-top-color: white;\n      border-radius: 50%;\n      animation: spin 0.7s linear infinite;\n    }\n\n    @keyframes spin {\n      to {\n        transform: rotate(360deg);\n      }\n    }\n\n    .status {\n      display: none;\n      margin-top: 18px;\n      padding: 16px;\n      border-radius: 14px;\n      font-size: 14px;\n      line-height: 1.6;\n      animation: status-in 0.35s ease both;\n    }\n\n    @keyframes status-in {\n      from {\n        opacity: 0;\n        transform: translateY(8px);\n      }\n\n      to {\n        opacity: 1;\n        transform: translateY(0);\n      }\n    }\n\n    .status.success {\n      display: block;\n      border: 1px solid rgba(34, 197, 94, 0.27);\n      color: #bbf7d0;\n      background: rgba(34, 197, 94, 0.1);\n    }\n\n    .status.error {\n      display: block;\n      border: 1px solid rgba(239, 68, 68, 0.28);\n      color: #fecaca;\n      background: rgba(239, 68, 68, 0.1);\n    }\n\n    .form-note {\n      margin-top: 15px;\n      color: #64748b;\n      font-size: 11px;\n      text-align: center;\n    }\n\n    .footer {\n      margin-top: 32px;\n      color: #64748b;\n      font-size: 12px;\n      text-align: center;\n    }\n\n    @media (max-width: 900px) {\n      .layout {\n        grid-template-columns: 1fr;\n      }\n\n      .info-panel {\n        position: static;\n      }\n    }\n\n    @media (max-width: 640px) {\n      .page {\n        width: min(100% - 20px, 1180px);\n        padding-top: 35px;\n      }\n\n      .hero {\n        margin-bottom: 28px;\n      }\n\n      .hero-description {\n        font-size: 15px;\n      }\n\n      .info-panel,\n      .form-panel {\n        padding: 22px;\n        border-radius: 19px;\n      }\n\n      .form-grid {\n        grid-template-columns: 1fr;\n      }\n\n      .field.full {\n        grid-column: auto;\n      }\n    }\n  </style>\n</head>\n\n<body>\n  <div class=\"background-grid\"></div>\n  <div class=\"orb orb-one\"></div>\n  <div class=\"orb orb-two\"></div>\n\n  <main class=\"page\">\n    <section class=\"hero\">\n      <div class=\"badge\">\n        <span class=\"badge-dot\"></span>\n        AI-Powered Lead Qualification\n      </div>\n\n      <h1>\n        Turn Every Inquiry Into a\n        <span class=\"gradient-text\">Qualified Opportunity</span>\n      </h1>\n\n      <p class=\"hero-description\">\n        Share a few details about your business. Our AI Sales Agent will\n        analyze your requirements, evaluate lead potential, and recommend\n        the best next step automatically.\n      </p>\n    </section>\n\n    <section class=\"layout\">\n      <aside class=\"glass info-panel\">\n        <div class=\"panel-icon\">✦</div>\n\n        <h2 class=\"panel-title\">Smart Sales Automation</h2>\n\n        <p class=\"panel-copy\">\n          Built with n8n, Groq AI and automated CRM logging to help\n          businesses respond faster and prioritize the right opportunities.\n        </p>\n\n        <div class=\"feature-list\">\n          <div class=\"feature\">\n            <div class=\"feature-check\">✓</div>\n            <div>\n              <strong>AI Lead Scoring</strong>\n              <span>Automatically calculates a lead score from 0 to 100.</span>\n            </div>\n          </div>\n\n          <div class=\"feature\">\n            <div class=\"feature-check\">✓</div>\n            <div>\n              <strong>Smart Qualification</strong>\n              <span>Classifies every submission as Hot, Warm or Cold.</span>\n            </div>\n          </div>\n\n          <div class=\"feature\">\n            <div class=\"feature-check\">✓</div>\n            <div>\n              <strong>CRM Automation</strong>\n              <span>Saves structured lead information in Google Sheets.</span>\n            </div>\n          </div>\n\n          <div class=\"feature\">\n            <div class=\"feature-check\">✓</div>\n            <div>\n              <strong>Recommended Action</strong>\n              <span>Suggests the most effective follow-up for your sales team.</span>\n            </div>\n          </div>\n        </div>\n\n        <div class=\"trust\">\n          <span>🔒</span>\n          Your information is processed securely by the automation workflow.\n        </div>\n      </aside>\n\n      <section class=\"glass form-panel\">\n        <div class=\"form-header\">\n          <h2>Tell us about your business</h2>\n          <p>\n            Complete the form below and let the AI Sales Agent qualify\n            your request.\n          </p>\n        </div>\n\n        <form id=\"leadForm\">\n          <div class=\"form-grid\">\n\n            <div class=\"field\">\n              <label for=\"full_name\">\n                Full Name <span class=\"required\">*</span>\n              </label>\n              <input\n                id=\"full_name\"\n                name=\"full_name\"\n                type=\"text\"\n                placeholder=\"Afaq Khan\"\n                required\n              >\n            </div>\n\n            <div class=\"field\">\n              <label for=\"email\">\n                Email Address <span class=\"required\">*</span>\n              </label>\n              <input\n                id=\"email\"\n                name=\"email\"\n                type=\"email\"\n                placeholder=\"you@company.com\"\n                required\n              >\n            </div>\n\n            <div class=\"field\">\n              <label for=\"phone\">\n                Phone Number <span class=\"required\">*</span>\n              </label>\n              <input\n                id=\"phone\"\n                name=\"phone\"\n                type=\"tel\"\n                placeholder=\"+92 300 1234567\"\n                required\n              >\n            </div>\n\n            <div class=\"field\">\n              <label for=\"company\">\n                Company Name <span class=\"required\">*</span>\n              </label>\n              <input\n                id=\"company\"\n                name=\"company\"\n                type=\"text\"\n                placeholder=\"Your company\"\n                required\n              >\n            </div>\n\n            <div class=\"field\">\n              <label for=\"industry\">\n                Industry <span class=\"required\">*</span>\n              </label>\n              <select id=\"industry\" name=\"industry\" required>\n                <option value=\"\" selected disabled>Select industry</option>\n                <option value=\"Real Estate\">Real Estate</option>\n                <option value=\"Healthcare and Clinics\">Healthcare and Clinics</option>\n                <option value=\"E-commerce\">E-commerce</option>\n                <option value=\"Travel Agency\">Travel Agency</option>\n                <option value=\"Salon and Spa\">Salon and Spa</option>\n                <option value=\"Marketing Agency\">Marketing Agency</option>\n                <option value=\"Consulting\">Consulting</option>\n                <option value=\"Education\">Education</option>\n                <option value=\"SaaS and Technology\">SaaS and Technology</option>\n                <option value=\"Other\">Other</option>\n              </select>\n            </div>\n\n            <div class=\"field\">\n              <label for=\"service_required\">\n                Service Required <span class=\"required\">*</span>\n              </label>\n              <select\n                id=\"service_required\"\n                name=\"service_required\"\n                required\n              >\n                <option value=\"\" selected disabled>Select a service</option>\n                <option value=\"WhatsApp AI Sales Agent\">WhatsApp AI Sales Agent</option>\n                <option value=\"AI Customer Support Agent\">AI Customer Support Agent</option>\n                <option value=\"Lead Qualification Automation\">Lead Qualification Automation</option>\n                <option value=\"Appointment Booking Automation\">Appointment Booking Automation</option>\n                <option value=\"Email Support Automation\">Email Support Automation</option>\n                <option value=\"CRM Automation\">CRM Automation</option>\n                <option value=\"Custom AI Automation\">Custom AI Automation</option>\n              </select>\n            </div>\n\n            <div class=\"field\">\n              <label for=\"business_size\">\n                Business Size <span class=\"required\">*</span>\n              </label>\n              <select id=\"business_size\" name=\"business_size\" required>\n                <option value=\"\" selected disabled>Select business size</option>\n                <option value=\"Solo Founder\">Solo Founder</option>\n                <option value=\"2-10 Employees\">2–10 Employees</option>\n                <option value=\"11-50 Employees\">11–50 Employees</option>\n                <option value=\"51-200 Employees\">51–200 Employees</option>\n                <option value=\"201-500 Employees\">201–500 Employees</option>\n                <option value=\"500+ Employees\">500+ Employees</option>\n              </select>\n            </div>\n\n            <div class=\"field\">\n              <label for=\"monthly_leads\">\n                Monthly Leads <span class=\"required\">*</span>\n              </label>\n              <select id=\"monthly_leads\" name=\"monthly_leads\" required>\n                <option value=\"\" selected disabled>Select lead volume</option>\n                <option value=\"Less than 50\">Less than 50</option>\n                <option value=\"50-100\">50–100</option>\n                <option value=\"101-300\">101–300</option>\n                <option value=\"301-1000\">301–1,000</option>\n                <option value=\"More than 1000\">More than 1,000</option>\n              </select>\n            </div>\n\n            <div class=\"field full\">\n              <label for=\"budget\">\n                Estimated Monthly Budget <span class=\"required\">*</span>\n              </label>\n              <select id=\"budget\" name=\"budget\" required>\n                <option value=\"\" selected disabled>Select estimated budget</option>\n                <option value=\"Less than $100\">Less than $100</option>\n                <option value=\"$100-$299\">$100–$299</option>\n                <option value=\"$300-$499\">$300–$499</option>\n                <option value=\"$500-$999\">$500–$999</option>\n                <option value=\"$1000-$2499\">$1,000–$2,499</option>\n                <option value=\"$2500+\">$2,500+</option>\n              </select>\n            </div>\n\n            <div class=\"field full\">\n              <label for=\"pain_point\">\n                Main Business Challenge <span class=\"required\">*</span>\n              </label>\n              <textarea\n                id=\"pain_point\"\n                name=\"pain_point\"\n                placeholder=\"Describe your current sales, customer-support or lead-management challenge...\"\n                required\n              ></textarea>\n            </div>\n          </div>\n\n          <div class=\"submit-wrap\">\n            <button id=\"submitButton\" class=\"submit-button\" type=\"submit\">\n              <span id=\"buttonText\">Analyze My Business</span>\n              <span id=\"spinner\" class=\"spinner\"></span>\n            </button>\n          </div>\n\n          <div id=\"statusMessage\" class=\"status\"></div>\n\n          <p class=\"form-note\">\n            By submitting this form, you agree to have your information\n            analyzed for lead qualification purposes.\n          </p>\n        </form>\n      </section>\n    </section>\n\n    <footer class=\"footer\">\n      AI Sales Agent & Lead Qualification System · Powered by n8n and Groq AI\n    </footer>\n  </main>\n\n  <script>\n    const form = document.getElementById('leadForm');\n    const submitButton = document.getElementById('submitButton');\n    const buttonText = document.getElementById('buttonText');\n    const spinner = document.getElementById('spinner');\n    const statusMessage = document.getElementById('statusMessage');\n\n    const webhookUrl =\n      'https://afaqkhan67.app.n8n.cloud/webhook/ai-sales-agent';\n\n    function setLoading(isLoading) {\n      submitButton.disabled = isLoading;\n      spinner.style.display = isLoading ? 'inline-block' : 'none';\n      buttonText.textContent = isLoading\n        ? 'AI is analyzing your lead...'\n        : 'Analyze My Business';\n    }\n\n    function showStatus(type, message) {\n      statusMessage.className = 'status ' + type;\n      statusMessage.textContent = message;\n    }\n\n    form.addEventListener('submit', async function(event) {\n      event.preventDefault();\n\n      setLoading(true);\n      statusMessage.className = 'status';\n      statusMessage.textContent = '';\n\n      const formData = new FormData(form);\n\n      const payload = {\n        full_name: String(formData.get('full_name') || '').trim(),\n        email: String(formData.get('email') || '').trim(),\n        phone: String(formData.get('phone') || '').trim(),\n        company: String(formData.get('company') || '').trim(),\n        industry: String(formData.get('industry') || '').trim(),\n        service_required: String(\n          formData.get('service_required') || ''\n        ).trim(),\n        business_size: String(\n          formData.get('business_size') || ''\n        ).trim(),\n        monthly_leads: String(\n          formData.get('monthly_leads') || ''\n        ).trim(),\n        budget: String(formData.get('budget') || '').trim(),\n        pain_point: String(formData.get('pain_point') || '').trim()\n      };\n\n      try {\n        const response = await fetch(webhookUrl, {\n          method: 'POST',\n          headers: {\n            'Content-Type': 'application/json'\n          },\n          body: JSON.stringify(payload)\n        });\n\n        if (!response.ok) {\n          throw new Error('The automation returned HTTP ' + response.status);\n        }\n\n        showStatus(\n          'success',\n          'Success! Your information has been received and analyzed. Our sales team will review the recommended next action.'\n        );\n\n        form.reset();\n      } catch (error) {\n        console.error(error);\n\n        showStatus(\n          'error',\n          'We could not submit your information. Please check that the n8n workflow is published and try again.'\n        );\n      } finally {\n        setLoading(false);\n      }\n    });\n  </script>\n</body>\n</html>\n`;\n\nreturn [\n  {\n    json: {\n      html\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        400
+      ],
+      "id": "168c91fa-8a0d-42b0-a626-e4a38d1eee34",
+      "name": "Generate HTML Form"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $('Generate HTML Form').first().json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        704,
+        400
+      ],
+      "id": "b4c8bd61-3929-4d7c-8599-b43672e46ab3",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "663ca7cb-ee3b-428a-8165-e19064553878",
+              "leftValue": "={{ $json.output.lead_status }}",
+              "rightValue": "Hot Lead",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2368,
+        -112
+      ],
+      "id": "21b43f54-980f-4516-97db-47a0e35f5d0e",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.output.email }}",
+        "subject": "=Thank you {{ $json.output.customer_name }} — we received your inquiry",
+        "message": "=<h2>Thank You for Contacting Us!</h2>  <p>Hi <b>{{ $json.output.customer_name }}</b>,</p>  <p>Thank you for reaching out to us.</p>  <p>We have successfully received your inquiry regarding <b>{{ $json.output.service_required }}</b>.</p>  <p>Our AI has already analyzed your business requirements, and our team will review your request shortly.</p>  <hr>  <h3>Your Submitted Information</h3>  <p><b>Company:</b> {{ $json.output.company }}</p>  <p><b>Industry:</b> {{ $json.output.industry }}</p>  <p><b>Business Size:</b> {{ $json.output.business_size }}</p>  <p><b>Monthly Leads:</b> {{ $json.output.monthly_leads }}</p>  <p><b>Budget:</b> {{ $json.output.budget }}</p>  <hr>  <h3>AI Analysis</h3>  <p><b>Lead Score:</b> {{ $json.output.lead_score }}/100</p>  <p><b>Status:</b> {{ $json.output.lead_status }}</p>  <p><b>Priority:</b> {{ $json.output.priority }}</p>  <hr>  <p>Our team will contact you soon to discuss the best solution for your business.</p>  <p>Best Regards,<br> <b>AI Sales Team</b></p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        -240
+      ],
+      "id": "08bc0ad3-6168-464d-8547-a135472c65b5",
+      "name": "Conformation Email",
+      "webhookId": "aee89c23-994f-4dcc-a521-bec59a9a0e77",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0EB7LUV0Jbh5hOQ",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "afiimalik67@gmail.com",
+        "subject": "=New Hot Lead - {{ $json.output.customer_name }}",
+        "message": "=<h2>🔥 New Hot Lead Received</h2>\n\n<hr>\n\n<p><b>Customer Name:</b> {{ $json.output.customer_name }}</p>\n<p><b>Email:</b> {{ $json.output.email }}</p>\n<p><b>Phone:</b> {{ $json.output.phone }}</p>\n<p><b>Company:</b> {{ $json.output.company }}</p>\n<p><b>Industry:</b> {{ $json.output.industry }}</p>\n<p><b>Service Required:</b> {{ $json.output.service_required }}</p>\n<p><b>Business Size:</b> {{ $json.output.business_size }}</p>\n<p><b>Monthly Leads:</b> {{ $json.output.monthly_leads }}</p>\n<p><b>Budget:</b> {{ $json.output.budget }}</p>\n\n<hr>\n\n<h3>🤖 AI Analysis</h3>\n\n<p><b>Lead Score:</b> {{ $json.output.lead_score }}/100</p>\n<p><b>Lead Status:</b> {{ $json.output.lead_status }}</p>\n<p><b>Priority:</b> {{ $json.output.priority }}</p>\n\n<p><b>Summary:</b></p>\n<p>{{ $json.output.summary }}</p>\n\n<p><b>Recommended Action:</b></p>\n<p>{{ $json.output.recommended_action }}</p>\n\n<hr>\n\n<p style=\"color:green;\">\nThis notification was generated automatically by the AI Sales Agent.\n</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1456,
+        240
+      ],
+      "id": "1caf9597-daa9-4a54-ba34-09ba6c3c6fcc",
+      "name": "Admin Email",
+      "webhookId": "0ad17ba8-85ea-4b1d-864d-cedb7995d20c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0EB7LUV0Jbh5hOQ",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1g7ZX38Cr6gG7b69TZd7UIqmJx6n4_3-lk74_r9Yv5Ug",
+          "mode": "list",
+          "cachedResultName": "AI Sales Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1g7ZX38Cr6gG7b69TZd7UIqmJx6n4_3-lk74_r9Yv5Ug/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1g7ZX38Cr6gG7b69TZd7UIqmJx6n4_3-lk74_r9Yv5Ug/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now }}",
+            "Customer Name": "={{ $json.output.customer_name }}",
+            "Phone": "={{ $json.output.phone }}",
+            "Email": "={{ $json.output.email }}",
+            "Company": "={{ $json.output.company }}",
+            "Industry": "={{ $json.output.industry }}",
+            "Service Required": "={{ $json.output.service_required }}",
+            "Business Size": "={{ $json.output.business_size }}",
+            "Monthly Leads": "={{ $json.output.monthly_leads }}",
+            "Budget": "={{ $json.output.budget }}",
+            "Lead Score": "={{ $json.output.lead_score }}",
+            "Lead Status": "={{ $json.output.lead_status }}",
+            "Priority": "={{ $json.output.priority }}",
+            "Summary": "={{ $json.output.summary }}",
+            "Recommended Action": "={{ $json.output.recommended_action }}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Service Required",
+              "displayName": "Service Required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Business Size",
+              "displayName": "Business Size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Monthly Leads",
+              "displayName": "Monthly Leads",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead Score",
+              "displayName": "Lead Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead Status",
+              "displayName": "Lead Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Recommended Action",
+              "displayName": "Recommended Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        992,
+        0
+      ],
+      "id": "710cbc01-9f7c-4548-be25-561c57b528cd",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "q2a2FN239lsGZwzF",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1648,
+        240
+      ],
+      "id": "caa57aed-3d05-4c00-be67-53734d6bd19c",
+      "name": "Wait",
+      "webhookId": "5fbeb98e-74f7-474a-8e0d-37c97ca5e4d1"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('AI Agent').item.json.output.email }}",
+        "subject": "Following up on your AI automation inquiry",
+        "message": "=<h2>Hello {{ $('AI Agent').item.json.output.customer_name }},</h2>  <p>We hope you're doing well.</p>  <p>We wanted to follow up regarding your inquiry about AI automation.</p>  <p>If you have any questions or would like to schedule a free consultation, simply reply to this email.</p>  <p>Best Regards,<br> AI Sales Team</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1840,
+        240
+      ],
+      "id": "48040e4b-f45d-4af4-9ab5-ba38819718ad",
+      "name": "Follow-up Email",
+      "webhookId": "165ed457-1249-4117-9da2-eb6c3093ae37",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0EB7LUV0Jbh5hOQ",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('AI Agent').item.json.output.lead_status }}",
+                    "rightValue": "Hot Lead",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "407cd8f1-e909-4739-bce0-f42b5b8f47ef"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Hot Lead"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "93cbeeea-557a-4053-b1f3-95655947862b",
+                    "leftValue": "={{ $('AI Agent').item.json.output.lead_status }}",
+                    "rightValue": "Warm Lead",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Warm Lead"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "8825dca3-7a73-4157-b562-d1144cbaa52b",
+                    "leftValue": "={{ $('AI Agent').item.json.output.lead_status }}",
+                    "rightValue": "Cold Lead",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cold Lead"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        992,
+        240
+      ],
+      "id": "be803079-bdce-43ec-a87c-a31e37d001c3",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "afiimalik67@gmail.com",
+          "mode": "list",
+          "cachedResultName": "afiimalik67@gmail.com"
+        },
+        "start": "={{ $now.plus({ days: 1 }).setZone('Asia/Karachi').toISO() }}",
+        "end": "={{ $now.plus({ days: 1, minutes: 30 }).setZone('Asia/Karachi').toISO() }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ $('AI Agent').item.json.output.email }}"
+          ],
+          "color": "3",
+          "conferenceDataUi": {
+            "conferenceDataValues": {
+              "conferenceSolution": "hangoutsMeet"
+            }
+          },
+          "description": "=Customer: {{ $('AI Agent').item.json.output.customer_name }}  Company: {{ $('AI Agent').item.json.output.company }}  Email: {{ $('AI Agent').item.json.output.email }}  Phone: {{ $('AI Agent').item.json.output.phone }}  Industry: {{ $('AI Agent').item.json.output.industry }}  Service Required: {{ $('AI Agent').item.json.output.service_required }}  Lead Score: {{ $('AI Agent').item.json.output.lead_score }}/100  Lead Status: {{ $('AI Agent').item.json.output.lead_status }}  Summary: {{ $('AI Agent').item.json.output.summary }}",
+          "location": "Google Meet",
+          "sendUpdates": "all",
+          "showMeAs": "opaque",
+          "summary": "=Demo Call - {{ $('AI Agent').item.json.output.customer_name }}",
+          "visibility": "public"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1248,
+        240
+      ],
+      "id": "ba26402b-934b-46d0-a8d3-d4a47c4678dd",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "r1rgsx7XsJS797Vr",
+          "name": "Google Calendar OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Lead Data": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Conformation Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Generate HTML Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate HTML Form": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Admin Email": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Follow-up Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event": {
+      "main": [
+        [
+          {
+            "node": "Admin Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "06824c94-1433-44fd-9a1d-1231f9777875",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6fd7ce1e08e4cb54dbd88e63b0006804cd9bf63e9002a0ee6d78c9df9d547841"
+  },
+  "nodeGroups": [],
+  "id": "dYNu607XgYYDWwKh",
+  "tags": []
+}
